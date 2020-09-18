@@ -15,7 +15,7 @@ module Loggery
         end
 
         def call(_worker_instance, queue, _sqs_msg, body)
-          Loggery::Metadata::Store.with_metadata(loggable_job_metadata.call(queue, body)) do
+          Loggery::Metadata::Store.with_metadata(self.class.loggable_job_metadata.call(queue, body)) do
             job_instance_name = "#{body['job_class']} (#{body['arguments']})"
             log_job_start(body, job_instance_name)
 

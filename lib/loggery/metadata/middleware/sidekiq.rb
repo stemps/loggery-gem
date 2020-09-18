@@ -11,10 +11,11 @@ module Loggery
         # Clients can provide their own error handler
         class << self
           attr_accessor(:error_handler) { ->(e) { Sidekiq::Logging.logger.error(e) } }
+          attr_accessor(:loggable_job_metadata) { ->(message, queue) { build_metadata(message, queue) } }
         end
 
         def call(_worker, message, queue)
-          Loggery::Metadata::Store.with_metadata(build_metadata(message, queue)) do
+          Loggery::Metadata::Store.with_metadata(self.class.loggable_job_metadata.call(message, queue)) do
             job_instance_name = "#{message['class']} (#{message['args']})"
             log_job_start(message, job_instance_name)
 
