@@ -11,10 +11,11 @@ module Loggery
         class << self
           # Clients can provide their own error handler
           attr_accessor(:error_handler) { ->(e) { Rails.logger.error(e) } }
+          attr_accessor(:loggable_job_metadata) { ->(queue, body) { build_metadata(queue, body) } }
         end
 
         def call(_worker_instance, queue, _sqs_msg, body)
-          Loggery::Metadata::Store.with_metadata(build_metadata(queue, body)) do
+          Loggery::Metadata::Store.with_metadata(loggable_job_metadata.call(queue, body)) do
             job_instance_name = "#{body['job_class']} (#{body['arguments']})"
             log_job_start(body, job_instance_name)
 
